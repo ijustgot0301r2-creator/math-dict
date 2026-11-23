@@ -54,3 +54,8 @@
 - 画像アップロードのコミットメッセージは `upload: <ファイル名>`。画像は Contents API で 1 枚ずつ PUT する。
 - 画像キャッシュ（IndexedDB）のキーは blob の SHA。同名ファイルが差し替えられても古い画像が出ない。Blob URL はメモリ上でも SHA ごとに使い回す。
 - PC ではスマホ用ツールバーが出ないため、編集画面の上部バーにも「画像」ボタンを置く。
+- アイコンは画像ライブラリを足さずに Node の zlib で PNG を生成する（`npm run icons`、scripts/gen-icons.mjs）。青地に白の Σ。maskable 用は図形を 75% に縮めてセーフゾーンに収める。
+- Service Worker は vite-plugin-pwa の autoUpdate。アプリ本体と KaTeX のフォント（woff2 のみ）をプリキャッシュする。GitHub API の応答は SW ではキャッシュしない（オフラインのデータは IndexedDB が担当）。
+- 起動を軽くするため、エディタ画面（CodeMirror を含む）は遅延読み込みにする。検索インデックスも最初に検索したときに作る。
+- IndexedDB が使えない環境（プライベートブラウズ等）では、エラーを表示したうえでオンライン専用として動かす。
+- iOS のステータスバーは `default`（白背景に黒文字）。ダークモードは対象外のため。

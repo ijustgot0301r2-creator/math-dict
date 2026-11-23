@@ -10,12 +10,12 @@ function isEditable(el: Element | null): boolean {
 
 export default function SearchBox() {
   const navigate = useNavigate();
-  const index = useSearchIndex();
+  const getIndex = useSearchIndex();
   const inputRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
   const [sel, setSel] = useState(0);
-  const hits = useMemo(() => index.search(q, 30), [index, q]);
+  const hits = useMemo(() => (q.trim() ? getIndex().search(q, 30) : []), [getIndex, q]);
   const trimmed = q.trim();
   // Selectable items: the hits, or a single "create" entry.
   const count = hits.length || (trimmed ? 1 : 0);

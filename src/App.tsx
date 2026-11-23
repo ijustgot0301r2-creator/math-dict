@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Layout from './components/Layout';
 import ToastHost from './components/Toast';
@@ -6,11 +6,11 @@ import { vault } from './lib/appVault';
 import { onAuthError } from './lib/github';
 import { loadSettings } from './lib/settings';
 import { VaultContext } from './lib/useVault';
-import EditPage from './pages/EditPage';
+// The editor (CodeMirror) is loaded on demand to keep startup light.
+const EditPage = lazy(() => import('./pages/EditPage'));
 import HomePage from './pages/HomePage';
 import NotePage from './pages/NotePage';
 import SettingsPage from './pages/SettingsPage';
-
 
 function RequireSettings({ children }: { children: React.ReactNode }) {
   return loadSettings() ? <>{children}</> : <Navigate to="/settings" replace />;
@@ -19,20 +19,34 @@ function RequireSettings({ children }: { children: React.ReactNode }) {
 // Remount the editor when the target changes so its state is re-initialised.
 function EditRoute() {
   const { title } = useParams();
-  return <EditPage key={title} isNew={false} />;
+  return (
+    <Suspense fallback={<main className="page"><p className="hint">読み込み中…</p></main>}>
+      <EditPage key={title} isNew={false} />
+    </Suspense>
+  );
 }
 
 function NewRoute() {
   const { search } = useLocation();
-  return <EditPage key={search} isNew />;
+  return (
+    <Suspense fallback={<main className="page"><p className="hint">読み込み中…</p></main>}>
+      <EditPage key={search} isNew />
+    </Suspense>
+  );
 }
+
+let started = false;
 
 export default function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
     onAuthError(() => navigate('/settings?reason=auth'));
-    void vault.init();
+    // Guard against React StrictMode running effects twice in development.
+    if (!started) {
+      started = true;
+      void vault.init();
+    }
     const on = () => vault.setOnline(true);
     const off = () => vault.setOnline(false);
     window.addEventListener('online', on);

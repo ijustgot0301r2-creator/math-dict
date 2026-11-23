@@ -64,7 +64,14 @@ export class Vault {
   async init(): Promise<void> {
     this.settings = loadSettings();
     if (!this.settings) return;
-    const { notes, state } = await db.loadAll();
+    let notes: StoredNote[] = [];
+    let state: VaultState | undefined;
+    try {
+      ({ notes, state } = await db.loadAll());
+    } catch {
+      // IndexedDB unavailable (e.g. private browsing): work online-only.
+      this.set({ error: '端末のキャッシュを使えません（プライベートブラウズ等）。オフライン閲覧はできません' });
+    }
     if (state && state.source !== sourceKey(this.settings)) {
       await db.clearVault();
       this.commitNotes(new Map(), {}, null, true);

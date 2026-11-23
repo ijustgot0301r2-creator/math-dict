@@ -37,6 +37,18 @@ describe('buildIndex', () => {
   });
 });
 
+describe('performance', () => {
+  it('rebuilds the global index for 1000 notes quickly (startup from cache)', () => {
+    const entries = Array.from({ length: 1000 }, (_, i) =>
+      note(`記事${i}`, `---\naliases: [a${i}]\ntags: [分野${i % 20}/下位${i % 5}]\n---\n${'[[記事' + ((i * 7) % 1000) + ']] と $x^2$ の説明。\n'.repeat(20)}`),
+    );
+    const t0 = performance.now();
+    const idx = buildIndex(entries);
+    expect(performance.now() - t0).toBeLessThan(200);
+    expect(idx.backlinks.size).toBeGreaterThan(900);
+  });
+});
+
 describe('planSync', () => {
   it('fetches only changed notes and removes deleted ones', () => {
     const cached = new Map([
