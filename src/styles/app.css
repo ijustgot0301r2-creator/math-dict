@@ -101,3 +101,34 @@ summary.callout-title { cursor: pointer; }
 .backlinks li { margin-bottom: 12px; }
 .backlink-title { font-weight: 600; }
 .excerpt { font-size: 14px; color: var(--muted); margin-left: 12px; line-height: 1.6; }
+
+/* ---------- search ---------- */
+.search { position: relative; }
+.search input { width: 100%; padding: 6px 10px; font-size: 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-soft); }
+.search-results { position: absolute; left: 0; right: 0; top: calc(100% + 4px); max-height: 70vh; overflow-y: auto; margin: 0; padding: 4px 0; list-style: none; background: #fff; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 30; min-width: 260px; }
+.search-results li { padding: 6px 12px; cursor: pointer; }
+.search-results li.selected { background: #eef2f6; }
+.search-title { font-weight: 600; }
+.search-kind { font-weight: 400; font-size: 12px; color: var(--muted); margin-left: 8px; }
+.search-excerpt { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search-create { color: var(--accent); }
+
+/* ---------- home ---------- */
+.home-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border-radius: 14px; padding: 2px 12px; font-size: 14px; background: #fff; }
+.chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+button.link { border: none; background: none; color: var(--accent); padding: 0 4px; text-decoration: underline; }
+.tagtree, .tagtree ul { list-style: none; margin: 0; padding-left: 0; }
+.tagtree ul { padding-left: 18px; border-left: 1px dotted var(--border); margin-left: 7px; }
+.tag-toggle { border: none; background: none; padding: 4px 0; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.caret { width: 1em; color: var(--muted); }
+.tag-count { font-size: 12px; color: var(--muted); font-weight: 400; }
+.note-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.note-item a { text-decoration: none; }
+
+@media (max-width: 600px) {
+  .brand { font-size: 0; }
+  .brand::before { content: 'Σ'; font-size: 20px; }
+  .sync-label { display: none; }
+}

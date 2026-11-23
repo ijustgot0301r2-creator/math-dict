@@ -1,25 +1,14 @@
 import { useEffect } from 'react';
-import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import { vault } from './lib/appVault';
 import { onAuthError } from './lib/github';
 import { loadSettings } from './lib/settings';
-import { VaultContext, useVault } from './lib/useVault';
+import { VaultContext } from './lib/useVault';
+import HomePage from './pages/HomePage';
 import NotePage from './pages/NotePage';
 import SettingsPage from './pages/SettingsPage';
 
-function Home() {
-  const s = useVault();
-  return (
-    <main className="page">
-      <ul>
-        {s.index.entries.map((e) => (
-          <li key={e.path}><Link to={`/note/${encodeURIComponent(e.title)}`}>{e.title}</Link></li>
-        ))}
-      </ul>
-    </main>
-  );
-}
 
 function RequireSettings({ children }: { children: React.ReactNode }) {
   return loadSettings() ? <>{children}</> : <Navigate to="/settings" replace />;
@@ -47,7 +36,7 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/" element={<RequireSettings><Home /></RequireSettings>} />
+          <Route path="/" element={<RequireSettings><HomePage /></RequireSettings>} />
           <Route path="/note/:title" element={<RequireSettings><NotePage /></RequireSettings>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
