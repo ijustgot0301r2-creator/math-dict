@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Layout from './components/Layout';
+import ToastHost from './components/Toast';
 import { vault } from './lib/appVault';
 import { onAuthError } from './lib/github';
 import { loadSettings } from './lib/settings';
 import { VaultContext } from './lib/useVault';
+import EditPage from './pages/EditPage';
 import HomePage from './pages/HomePage';
 import NotePage from './pages/NotePage';
 import SettingsPage from './pages/SettingsPage';
@@ -12,6 +14,17 @@ import SettingsPage from './pages/SettingsPage';
 
 function RequireSettings({ children }: { children: React.ReactNode }) {
   return loadSettings() ? <>{children}</> : <Navigate to="/settings" replace />;
+}
+
+// Remount the editor when the target changes so its state is re-initialised.
+function EditRoute() {
+  const { title } = useParams();
+  return <EditPage key={title} isNew={false} />;
+}
+
+function NewRoute() {
+  const { search } = useLocation();
+  return <EditPage key={search} isNew />;
 }
 
 export default function App() {
@@ -38,9 +51,12 @@ export default function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/" element={<RequireSettings><HomePage /></RequireSettings>} />
           <Route path="/note/:title" element={<RequireSettings><NotePage /></RequireSettings>} />
+          <Route path="/edit/:title" element={<RequireSettings><EditRoute /></RequireSettings>} />
+          <Route path="/new" element={<RequireSettings><NewRoute /></RequireSettings>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
+      <ToastHost />
     </VaultContext.Provider>
   );
 }

@@ -152,6 +152,13 @@ export class Vault {
     this.commitNotes(notes, this.snap.attachments, this.snap.headSha);
   }
 
+  protected async removeNote(path: string): Promise<void> {
+    const notes = new Map(this.snap.notes);
+    notes.delete(path);
+    await db.applyChanges([], [path], this.state());
+    this.commitNotes(notes, this.snap.attachments, this.snap.headSha);
+  }
+
   protected state(): VaultState {
     return {
       source: this.settings ? sourceKey(this.settings) : '',
