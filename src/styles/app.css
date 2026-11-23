@@ -198,3 +198,8 @@ button.danger { background: var(--danger); border-color: var(--danger); color: #
 .preview-body > :first-child { margin-top: 4px; }
 .preview-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
 .unresolved-note { color: var(--danger); font-weight: 600; }
+
+/* ---------- attachments ---------- */
+img.attachment { display: inline-block; min-width: 40px; min-height: 24px; border-radius: 4px; }
+img.attachment.loading { background: var(--bg-soft); min-width: 120px; min-height: 80px; }
+img.attachment.missing { outline: 1px dashed var(--danger); background: #fff5f5; min-width: 120px; min-height: 40px; }

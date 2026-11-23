@@ -56,6 +56,8 @@ export default function EditPage({ isNew }: { isNew: boolean }) {
   const [conflict, setConflict] = useState<Pending | null>(null);
   const [renameAsk, setRenameAsk] = useState(false);
   const [discardAsk, setDiscardAsk] = useState(false);
+  const [uploading, setUploading] = useState(0);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const entry = isNew ? undefined : snap.index.byTitle.get(normalizeKey(routeTitle));
   const baseNote = entry ? snap.notes.get(entry.path) : undefined;
@@ -224,6 +226,20 @@ export default function EditPage({ isNew }: { isNew: boolean }) {
     else navigate('/');
   }
 
+  async function uploadFiles(files: File[]) {
+    for (const file of files) {
+      setUploading((n) => n + 1);
+      try {
+        const name = await vault.uploadImage(file);
+        editorRef.current?.insert(`![[${name}]]`);
+      } catch (e) {
+        toast(`画像をアップロードできませんでした: ${errorMessage(e)}`, true);
+      } finally {
+        setUploading((n) => n - 1);
+      }
+    }
+  }
+
   const offline = !snap.online;
   const editor = (
     <div className="editor-pane" hidden={!wide && tab !== 'edit'}>
@@ -234,6 +250,7 @@ export default function EditPage({ isNew }: { isNew: boolean }) {
         onChange={(body) => update({ body })}
         getNotes={getNotes}
         onFocusChange={setFocused}
+        onPasteFiles={(files) => void uploadFiles(files)}
       />
     </div>
   );
@@ -249,7 +266,24 @@ export default function EditPage({ isNew }: { isNew: boolean }) {
         <button onClick={cancel} disabled={busy}>
           キャンセル
         </button>
-        <span className="edit-state">{isNew ? '新規作成' : '編集'}</span>
+        <span className="edit-state">
+          {uploading > 0 ? `画像をアップロード中…（${uploading}）` : isNew ? "新規作成" : "編集"}
+        </span>
+        <button onClick={() => fileRef.current?.click()} disabled={offline} title="画像を追加">
+          画像
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          hidden
+          onChange={(e) => {
+            const files = [...(e.target.files ?? [])];
+            e.target.value = "";
+            void uploadFiles(files);
+          }}
+        />
         <button className="primary" onClick={save} disabled={busy || offline || !form.title}>
           {busy ? '保存中…' : '保存'}
         </button>
@@ -287,7 +321,7 @@ export default function EditPage({ isNew }: { isNew: boolean }) {
         {editor}
         {preview}
       </div>
-      {!wide && tab === 'edit' && focused && <EditorToolbar editor={editorRef} />}
+      {!wide && tab === 'edit' && focused && <EditorToolbar editor={editorRef} onImage={() => fileRef.current?.click()} />}
 
       {draftPrompt && (
         <Modal

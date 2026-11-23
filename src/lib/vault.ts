@@ -152,6 +152,12 @@ export class Vault {
     this.commitNotes(notes, this.snap.attachments, this.snap.headSha);
   }
 
+  protected async addAttachment(name: string, ref: AttachmentRef): Promise<void> {
+    const attachments = { ...this.snap.attachments, [name]: ref };
+    this.set({ attachments });
+    await db.applyChanges([], [], this.state());
+  }
+
   protected async removeNote(path: string): Promise<void> {
     const notes = new Map(this.snap.notes);
     notes.delete(path);

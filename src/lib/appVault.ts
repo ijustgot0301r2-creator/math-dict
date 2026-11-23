@@ -1,8 +1,11 @@
+import * as db from './db';
 import type { StoredNote } from './db';
+import { bytesToBase64 } from './encoding';
 import { nowIso, parseNote, serializeNote, type Frontmatter, type Status } from './frontmatter';
 import { GitHubError, type NewTreeEntry } from './github';
+import { attachmentName, prepareImage } from './image';
 import { indexNote } from './indexer';
-import { normalizeKey, notePath, titleFromPath } from './normalize';
+import { ATTACHMENTS_DIR, imageMime, normalizeKey, notePath, titleFromPath } from './normalize';
 import { rewriteLinks } from './rename';
 import { Vault } from './vault';
 
@@ -131,6 +134,48 @@ export class AppVault extends Vault {
     if (!n) return;
     const { fm, body } = parseNote(n.content);
     await this.saveNote({ path, title: titleFromPath(path), fm: { ...fm, status }, body, baseSha: n.sha });
+  }
+
+  // ---- images ----
+
+  private urls = new Map<string, Promise<string | null>>(); // blob sha -> object URL
+
+  /** Resize/convert and upload to attachments/. Returns the file name to embed as ![[name]]. */
+  async uploadImage(file: File): Promise<string> {
+    this.requireOnline();
+    const { blob, ext } = await prepareImage(file);
+    const name = attachmentName(ext);
+    const path = `${ATTACHMENTS_DIR}/${name}`;
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const res = await this.client.putFile(path, bytesToBase64(bytes), `upload: ${name}`);
+    await db.putImage(res.sha, blob);
+    await this.addAttachment(name, { path, sha: res.sha });
+    return name;
+  }
+
+  /**
+   * Object URL for an attachment by file name. The repository is private, so the image is fetched with the token
+   * via the Blobs API and cached in IndexedDB (keyed by blob SHA, so edits invalidate naturally).
+   */
+  attachmentUrl(name: string): Promise<string | null> {
+    const ref = this.getSnapshot().attachments[name];
+    if (!ref) return Promise.resolve(null);
+    let p = this.urls.get(ref.sha);
+    if (!p) {
+      p = (async () => {
+        let blob = await db.getImage(ref.sha);
+        if (!blob) {
+          blob = await this.client.getBlobBinary(ref.sha, imageMime(name) ?? 'application/octet-stream');
+          await db.putImage(ref.sha, blob);
+        }
+        return URL.createObjectURL(blob);
+      })().catch(() => {
+        this.urls.delete(ref.sha); // allow a retry later (e.g. when back online)
+        return null;
+      });
+      this.urls.set(ref.sha, p);
+    }
+    return p;
   }
 
   /** Fetch the server copy of a note, replacing the cached one. Returns null if it no longer exists. */
