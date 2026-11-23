@@ -1,4 +1,5 @@
 import { Link, Outlet } from 'react-router-dom';
+import PreviewLayer from './PreviewLayer';
 import SearchBox from './SearchBox';
 import SyncIndicator from './SyncIndicator';
 import { useVault } from '../lib/useVault';
@@ -21,6 +22,7 @@ export default function Layout() {
       </header>
       {s.status === 'error' && s.error && <div className="banner error">同期エラー: {s.error}</div>}
       <Outlet />
+      <PreviewLayer />
     </div>
   );
 }

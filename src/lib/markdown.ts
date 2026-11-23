@@ -201,6 +201,8 @@ function calloutRule(state: StateCore): void {
     titleInline.children = [];
     titleInline.map = p.map;
     const titleClose = new state.Token('callout_title_close', 'div', -1);
+    titleOpen.level = titleClose.level = open.level + 1;
+    titleInline.level = open.level + 2;
     titleClose.meta = { fold };
 
     const rest = nl < 0 ? '' : inl.content.slice(nl + 1);
